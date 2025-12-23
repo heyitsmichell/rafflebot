@@ -5,6 +5,7 @@ import os
 import twitchio
 from twitchio import eventsub
 from twitchio.ext import commands
+from twitchio.web import AiohttpAdapter
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -25,6 +26,9 @@ PORT = int(os.getenv("PORT", "10000"))
 class RaffleBot(commands.AutoBot):
     def __init__(self, *, supabase_client: Client, subs: list[eventsub.SubscriptionPayload]) -> None:
         self.supabase = supabase_client
+        
+        adapter = AiohttpAdapter(host="0.0.0.0", port=PORT)
+        
         super().__init__(
             client_id=CLIENT_ID,
             client_secret=CLIENT_SECRET,
@@ -33,7 +37,7 @@ class RaffleBot(commands.AutoBot):
             prefix="!",
             subscriptions=subs,
             force_subscribe=True,
-            port=PORT,
+            adapter=adapter,
         )
 
     async def setup_hook(self) -> None:
@@ -125,6 +129,7 @@ def main() -> None:
         return
 
     twitchio.utils.setup_logging(level=logging.INFO)
+    LOGGER.info("Starting bot on 0.0.0.0:%s", PORT)
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     LOGGER.info("Connected to Supabase")
