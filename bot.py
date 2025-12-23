@@ -19,6 +19,7 @@ OWNER_ID = os.getenv("TWITCH_OWNER_ID", "")
 CHANNEL = os.getenv("TWITCH_CHANNEL", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+PORT = int(os.getenv("PORT", "10000"))
 
 
 class RaffleBot(commands.AutoBot):
@@ -32,6 +33,7 @@ class RaffleBot(commands.AutoBot):
             prefix="!",
             subscriptions=subs,
             force_subscribe=True,
+            port=PORT,
         )
 
     async def setup_hook(self) -> None:
@@ -91,7 +93,7 @@ class RaffleBot(commands.AutoBot):
         return resp
 
     async def event_ready(self) -> None:
-        LOGGER.info("Bot ready! ID: %s, Channel: %s", self.bot_id, CHANNEL)
+        LOGGER.info("Bot ready! ID: %s, Channel: %s, Port: %s", self.bot_id, CHANNEL, PORT)
 
 
 def load_tokens(supabase: Client) -> tuple[list[tuple[str, str]], list[eventsub.SubscriptionPayload]]:
