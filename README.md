@@ -12,15 +12,15 @@ A Twitch chat bot that runs raffles during livestreams. Only **VIPs**, **Subscri
 
 ## Commands
 
-| Command | Aliases | Description | Who Can Use |
-|---------|---------|-------------|-------------|
-| `!startraffle` | `!sr` | Start a new raffle | Broadcaster/Mods |
-| `!join` | `!enter` | Join the raffle | VIP/Sub/Mod only |
-| `!endraffle` | `!er` | Close entries | Broadcaster/Mods |
-| `!draw` | `!pickwinner` | Pick a winner | Broadcaster/Mods |
-| `!cancelraffle` | `!cr` | Cancel raffle | Broadcaster/Mods |
-| `!participants` | `!count` | Show entry count | Anyone |
-| `!rafflehelp` | `!rh` | Show commands | Anyone |
+| Command | Description | Who Can Use |
+|---------|-------------|-------------|
+| `!startraffle` | Start a new raffle | Broadcaster/Mods |
+| `!join` | Join the raffle | VIP/Sub/Mod only |
+| `!endraffle` | Close entries | Broadcaster/Mods |
+| `!draw` | Pick a winner | Broadcaster/Mods |
+| `!cancelraffle` | Cancel raffle | Broadcaster/Mods |
+| `!participants` | Show entry count | Anyone |
+| `!rafflehelp` | Show commands | Anyone |
 
 ## Setup
 
@@ -50,7 +50,7 @@ Use [this tool](https://www.streamweasels.com/tools/convert-twitch-username-to-u
 ### 4. Deploy to Render
 
 1. Fork/clone this repo
-2. Create a **Background Worker** on [Render](https://render.com)
+2. Create a **Web Service** on [Render](https://render.com)
 3. Add environment variables (see below)
 4. Deploy!
 
