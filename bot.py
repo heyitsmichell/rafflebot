@@ -6,6 +6,7 @@ import twitchio
 from twitchio import eventsub
 from twitchio.ext import commands
 from twitchio.web import AiohttpAdapter
+from aiohttp import web
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
@@ -23,11 +24,21 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 PORT = int(os.getenv("PORT", "10000"))
 
 
+class HealthCheckAdapter(AiohttpAdapter):
+    async def setup(self) -> None:
+        await super().setup()
+        self.app.router.add_get("/", self.health_check)
+        self.app.router.add_get("/health", self.health_check)
+    
+    async def health_check(self, request: web.Request) -> web.Response:
+        return web.Response(text="OK", status=200)
+
+
 class RaffleBot(commands.AutoBot):
     def __init__(self, *, supabase_client: Client, subs: list[eventsub.SubscriptionPayload]) -> None:
         self.supabase = supabase_client
         
-        adapter = AiohttpAdapter(host="0.0.0.0", port=PORT)
+        adapter = HealthCheckAdapter(host="0.0.0.0", port=PORT)
         
         super().__init__(
             client_id=CLIENT_ID,
