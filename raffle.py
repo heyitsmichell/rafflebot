@@ -48,25 +48,25 @@ class RaffleComponent(commands.Component):
     def can_manage(self, chatter: twitchio.Chatter) -> bool:
         return chatter.moderator or chatter.broadcaster
 
-    @commands.command(name="startraffle", aliases=["sr"])
+    @commands.command(name="startraffle")
     async def start_raffle(self, ctx: commands.Context) -> None:
         if not self.can_manage(ctx.chatter):
-            await ctx.reply("❌ Only moderators and the broadcaster can start a raffle!")
+            await ctx.reply("Only moderators and the broadcaster can start a raffle.")
             return
 
         raffle = self.get_raffle(ctx.broadcaster.id)
 
         if raffle.is_active:
-            await ctx.reply("⚠️ A raffle is already in progress!")
+            await ctx.reply("A raffle is already in progress.")
             return
 
         raffle.reset()
         raffle.is_active = True
         raffle.is_open = True
 
-        await ctx.send("🎉 RAFFLE STARTED! 🎉 VIPs, Subscribers, and Moderators can type !join to enter! 🍀")
+        await ctx.send("Raffle started! VIPs, Subscribers, and Moderators can type !join to enter.")
 
-    @commands.command(name="join", aliases=["enter"])
+    @commands.command(name="join")
     async def join_raffle(self, ctx: commands.Context) -> None:
         raffle = self.get_raffle(ctx.broadcaster.id)
 
@@ -74,100 +74,100 @@ class RaffleComponent(commands.Component):
             return
 
         if not raffle.is_active:
-            await ctx.reply("❌ There's no raffle happening right now!")
+            await ctx.reply("There is no raffle happening right now.")
             return
 
         if not raffle.is_open:
-            await ctx.reply("❌ Raffle entries are closed!")
+            await ctx.reply("Raffle entries are closed.")
             return
 
         if not self.is_eligible(ctx.chatter):
-            await ctx.reply("❌ Only VIPs, Subscribers, and Moderators can join! 💜")
+            await ctx.reply("Only VIPs, Subscribers, and Moderators can join.")
             return
 
         display_name = ctx.chatter.display_name or ctx.chatter.name
 
         if raffle.add_participant(ctx.chatter.id, display_name):
-            await ctx.reply(f"✅ {display_name}, you're in! Good luck! 🎲")
+            await ctx.reply(f"{display_name}, you have joined the raffle.")
         else:
-            await ctx.reply(f"⚠️ {display_name}, you've already joined!")
+            await ctx.reply(f"{display_name}, you have already joined.")
 
-    @commands.command(name="endraffle", aliases=["er", "closeraffle"])
+    @commands.command(name="endraffle")
     async def end_raffle(self, ctx: commands.Context) -> None:
         if not self.can_manage(ctx.chatter):
-            await ctx.reply("❌ Only moderators and the broadcaster can end a raffle!")
+            await ctx.reply("Only moderators and the broadcaster can end a raffle.")
             return
 
         raffle = self.get_raffle(ctx.broadcaster.id)
 
         if not raffle.is_active:
-            await ctx.reply("❌ There's no raffle to end!")
+            await ctx.reply("There is no raffle to end.")
             return
 
         if not raffle.is_open:
-            await ctx.reply("⚠️ Entries already closed! Use !draw to pick a winner.")
+            await ctx.reply("Entries are already closed. Use !draw to pick a winner.")
             return
 
         raffle.is_open = False
         count = len(raffle.participants)
 
-        await ctx.send(f"🔒 ENTRIES CLOSED! {count} participant{'s' if count != 1 else ''} entered! Use !draw 🎯")
+        await ctx.send(f"Entries closed. {count} participant{'s' if count != 1 else ''} entered.")
 
-    @commands.command(name="draw", aliases=["pickwinner"])
+    @commands.command(name="draw")
     async def draw_winner(self, ctx: commands.Context) -> None:
         if not self.can_manage(ctx.chatter):
-            await ctx.reply("❌ Only moderators and the broadcaster can draw!")
+            await ctx.reply("Only moderators and the broadcaster can draw a winner.")
             return
 
         raffle = self.get_raffle(ctx.broadcaster.id)
 
         if not raffle.is_active:
-            await ctx.reply("❌ No raffle active! Start one with !startraffle")
+            await ctx.reply("No raffle active. Start one with !startraffle")
             return
 
         if raffle.is_open:
             raffle.is_open = False
-            await ctx.send("🔒 Entries closed!")
+            await ctx.send("Entries closed.")
 
         winner = raffle.draw_winner()
 
         if winner:
-            await ctx.send(f"🎊🎉 THE WINNER IS... 🥁🥁🥁 🏆 {winner} 🏆 Congratulations! 🎉🎊")
+            await ctx.send(f"The winner is {winner}! Congratulations!")
         else:
-            await ctx.send("😢 No one entered the raffle!")
+            await ctx.send("No one entered the raffle.")
         
         raffle.reset()
 
-    @commands.command(name="cancelraffle", aliases=["cr"])
+    @commands.command(name="cancelraffle")
     async def cancel_raffle(self, ctx: commands.Context) -> None:
         if not self.can_manage(ctx.chatter):
-            await ctx.reply("❌ Only moderators and the broadcaster can cancel!")
+            await ctx.reply("Only moderators and the broadcaster can cancel a raffle.")
             return
 
         raffle = self.get_raffle(ctx.broadcaster.id)
 
         if not raffle.is_active:
-            await ctx.reply("❌ No raffle to cancel!")
+            await ctx.reply("There is no raffle to cancel.")
             return
 
         count = len(raffle.participants)
         raffle.reset()
 
-        await ctx.send(f"❌ Raffle cancelled. {count} participant{'s were' if count != 1 else ' was'} entered.")
+        await ctx.send(f"Raffle cancelled. {count} participant{'s were' if count != 1 else ' was'} entered.")
 
-    @commands.command(name="participants", aliases=["count", "entries"])
+    @commands.command(name="participants")
     async def show_participants(self, ctx: commands.Context) -> None:
         raffle = self.get_raffle(ctx.broadcaster.id)
 
         if not raffle.is_active:
-            await ctx.reply("❌ No raffle happening!")
+            await ctx.reply("No raffle happening.")
             return
 
         count = len(raffle.participants)
-        status = "🟢 OPEN" if raffle.is_open else "🔴 CLOSED"
+        status = "Open" if raffle.is_open else "Closed"
 
-        await ctx.reply(f"📊 {status} | 👥 {count} participants")
+        await ctx.reply(f"Status: {status} | Participants: {count}")
 
-    @commands.command(name="rafflehelp", aliases=["rh"])
+    @commands.command(name="rafflehelp")
     async def raffle_help(self, ctx: commands.Context) -> None:
-        await ctx.send("🎰 !join - Enter | !participants - Count | [Mods] !startraffle !endraffle !draw !cancelraffle")
+        await ctx.send("Commands: !join, !participants | Mods: !startraffle, !endraffle, !draw, !cancelraffle")
