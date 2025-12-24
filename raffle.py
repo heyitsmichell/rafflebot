@@ -1,4 +1,4 @@
-import random
+import secrets
 from dataclasses import dataclass, field
 
 import twitchio
@@ -28,7 +28,7 @@ class RaffleState:
     def draw_winner(self) -> str | None:
         if not self.participants:
             return None
-        winner_id = random.choice(list(self.participants))
+        winner_id = secrets.choice(list(self.participants))
         return self.participant_names.get(winner_id, "Unknown")
 
 
