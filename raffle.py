@@ -87,9 +87,7 @@ class RaffleComponent(commands.Component):
 
         display_name = ctx.chatter.display_name or ctx.chatter.name
 
-        if raffle.add_participant(ctx.chatter.id, display_name):
-            await ctx.reply(f"{display_name}, you have joined the raffle.")
-        else:
+        if not raffle.add_participant(ctx.chatter.id, display_name):
             await ctx.reply(f"{display_name}, you have already joined.")
 
     @commands.command(name="endraffle")
@@ -132,7 +130,7 @@ class RaffleComponent(commands.Component):
         winner = raffle.draw_winner()
 
         if winner:
-            await ctx.send(f"The winner is {winner}! Congratulations!")
+            await ctx.send(f"The winner is @{winner}! Congratulations!")
         else:
             await ctx.send("No one entered the raffle.")
         
