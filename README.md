@@ -65,6 +65,7 @@ Use [this tool](https://www.streamweasels.com/tools/convert-twitch-username-to-u
 | `TWITCH_CHANNEL` | Channel name to join |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_KEY` | Supabase anon key |
+| `RENDER_URL` | Your Render app URL (e.g., `https://your-app.onrender.com`) |
 
 ### 5. Authorize Bot
 
@@ -74,4 +75,4 @@ After deployment, authorize both accounts:
 
 ## License
 
-MIT
+MIT License
