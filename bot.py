@@ -35,6 +35,10 @@ class HealthCheckAdapter(AiohttpAdapter):
             web.get("/", health_check),
             web.get("/health", health_check),
         ])
+    
+    @property
+    def scheme(self) -> str:
+        return "https"
 
 
 class RaffleBot(commands.AutoBot):
