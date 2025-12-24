@@ -36,6 +36,7 @@ class HealthCheckAdapter(AiohttpAdapter):
             web.get("/", health_check),
             web.get("/health", health_check),
         ])
+        self._force_redirect = f"{RENDER_URL}/oauth/callback" if RENDER_URL else None
     
     @property
     def scheme(self) -> str:
@@ -43,7 +44,15 @@ class HealthCheckAdapter(AiohttpAdapter):
     
     @property
     def callback(self) -> str:
-        return f"{RENDER_URL}/oauth/callback" if RENDER_URL else super().callback
+        return self._force_redirect or super().callback
+    
+    @property
+    def redirect_uri(self) -> str:
+        return self._force_redirect or super().redirect_uri
+    
+    @property  
+    def oauth_callback(self) -> str:
+        return self._force_redirect or getattr(super(), 'oauth_callback', self.callback)
 
 
 class RaffleBot(commands.AutoBot):
