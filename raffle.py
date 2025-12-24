@@ -1,8 +1,12 @@
+import logging
 import secrets
 from dataclasses import dataclass, field
 
 import twitchio
 from twitchio.ext import commands
+from supabase import Client
+
+LOGGER = logging.getLogger("RaffleBot")
 
 
 @dataclass
@@ -31,16 +35,85 @@ class RaffleState:
         winner_id = secrets.choice(list(self.participants))
         return self.participant_names.get(winner_id, "Unknown")
 
+    def to_db_format(self) -> dict:
+        """Convert state to database-storable format."""
+        participants_list = [
+            {"user_id": uid, "display_name": name}
+            for uid, name in self.participant_names.items()
+        ]
+        return {
+            "is_active": self.is_active,
+            "is_open": self.is_open,
+            "participants": participants_list,
+        }
+
+    @classmethod
+    def from_db_format(cls, data: dict) -> "RaffleState":
+        """Create RaffleState from database record."""
+        state = cls()
+        state.is_active = data.get("is_active", False)
+        state.is_open = data.get("is_open", False)
+        
+        participants_list = data.get("participants", [])
+        for p in participants_list:
+            state.participants.add(p["user_id"])
+            state.participant_names[p["user_id"]] = p["display_name"]
+        
+        return state
+
 
 class RaffleComponent(commands.Component):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot, supabase: Client) -> None:
         self.bot = bot
+        self.supabase = supabase
         self.raffles: dict[str, RaffleState] = {}
+
+    async def load_all_active_raffles(self) -> None:
+        """Load all active raffles from database on startup."""
+        try:
+            result = self.supabase.table("raffles").select("*").eq("is_active", True).execute()
+            
+            for row in result.data:
+                broadcaster_id = row["broadcaster_id"]
+                self.raffles[broadcaster_id] = RaffleState.from_db_format(row)
+                count = len(self.raffles[broadcaster_id].participants)
+                LOGGER.info("Loaded raffle for broadcaster %s with %d participants", broadcaster_id, count)
+            
+            LOGGER.info("Loaded %d active raffles from database", len(result.data))
+        except Exception as e:
+            LOGGER.warning("Could not load raffles from database: %s", e)
 
     def get_raffle(self, broadcaster_id: str) -> RaffleState:
         if broadcaster_id not in self.raffles:
             self.raffles[broadcaster_id] = RaffleState()
         return self.raffles[broadcaster_id]
+
+    async def save_raffle(self, broadcaster_id: str) -> None:
+        """Save raffle state to database."""
+        raffle = self.raffles.get(broadcaster_id)
+        if not raffle:
+            return
+        
+        try:
+            data = raffle.to_db_format()
+            data["broadcaster_id"] = broadcaster_id
+            
+            self.supabase.table("raffles").upsert(
+                data, on_conflict="broadcaster_id"
+            ).execute()
+            LOGGER.debug("Saved raffle state for broadcaster %s", broadcaster_id)
+        except Exception as e:
+            LOGGER.error("Failed to save raffle state: %s", e)
+
+    async def delete_raffle(self, broadcaster_id: str) -> None:
+        """Delete raffle state from database."""
+        try:
+            self.supabase.table("raffles").delete().eq(
+                "broadcaster_id", broadcaster_id
+            ).execute()
+            LOGGER.debug("Deleted raffle state for broadcaster %s", broadcaster_id)
+        except Exception as e:
+            LOGGER.error("Failed to delete raffle state: %s", e)
 
     def is_eligible(self, chatter: twitchio.Chatter) -> bool:
         return chatter.vip or chatter.subscriber or chatter.moderator or chatter.broadcaster
@@ -64,6 +137,7 @@ class RaffleComponent(commands.Component):
         raffle.is_active = True
         raffle.is_open = True
 
+        await self.save_raffle(ctx.broadcaster.id)
         await ctx.send("Raffle started! VIPs, Subscribers, and Moderators can type !enter to enter.")
 
     @commands.command(name="enter")
@@ -87,7 +161,9 @@ class RaffleComponent(commands.Component):
 
         display_name = ctx.chatter.display_name or ctx.chatter.name
 
-        if not raffle.add_participant(ctx.chatter.id, display_name):
+        if raffle.add_participant(ctx.chatter.id, display_name):
+            await self.save_raffle(ctx.broadcaster.id)
+        else:
             await ctx.reply(f"{display_name}, you have already joined.")
 
     @commands.command(name="endraffle")
@@ -109,6 +185,7 @@ class RaffleComponent(commands.Component):
         raffle.is_open = False
         count = len(raffle.participants)
 
+        await self.save_raffle(ctx.broadcaster.id)
         await ctx.send(f"Entries closed. {count} participant{'s' if count != 1 else ''} entered.")
 
     @commands.command(name="draw")
@@ -135,6 +212,7 @@ class RaffleComponent(commands.Component):
             await ctx.send("No one entered the raffle.")
         
         raffle.reset()
+        await self.delete_raffle(ctx.broadcaster.id)
 
     @commands.command(name="cancelraffle")
     async def cancel_raffle(self, ctx: commands.Context) -> None:
@@ -151,6 +229,7 @@ class RaffleComponent(commands.Component):
         count = len(raffle.participants)
         raffle.reset()
 
+        await self.delete_raffle(ctx.broadcaster.id)
         await ctx.send(f"Raffle cancelled. {count} participant{'s were' if count != 1 else ' was'} entered.")
 
     @commands.command(name="participants")

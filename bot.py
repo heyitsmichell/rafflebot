@@ -57,7 +57,9 @@ class RaffleBot(commands.AutoBot):
 
     async def setup_hook(self) -> None:
         from raffle import RaffleComponent
-        await self.add_component(RaffleComponent(self))
+        raffle_component = RaffleComponent(self, self.supabase)
+        await raffle_component.load_all_active_raffles()
+        await self.add_component(raffle_component)
         LOGGER.info("Loaded RaffleComponent")
         
         if CHANNEL:
