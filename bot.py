@@ -24,14 +24,17 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 PORT = int(os.getenv("PORT", "10000"))
 
 
+async def health_check(request: web.Request) -> web.Response:
+    return web.Response(text="RaffleBot Running!", status=200)
+
+
 class HealthCheckAdapter(AiohttpAdapter):
-    async def setup(self) -> None:
-        await super().setup()
-        self.app.router.add_get("/", self.health_check)
-        self.app.router.add_get("/health", self.health_check)
-    
-    async def health_check(self, request: web.Request) -> web.Response:
-        return web.Response(text="RaffleBot Running!", status=200)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_routes([
+            web.get("/", health_check),
+            web.get("/health", health_check),
+        ])
 
 
 class RaffleBot(commands.AutoBot):
