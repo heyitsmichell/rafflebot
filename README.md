@@ -15,7 +15,7 @@ A Twitch chat bot that runs raffles during livestreams. Only **VIPs**, **Subscri
 | Command | Description | Who Can Use |
 |---------|-------------|-------------|
 | `!startraffle` | Start a new raffle | Broadcaster/Mods |
-| `!join` | Join the raffle | VIP/Sub/Mod only |
+| `!enter` | Join the raffle | VIP/Sub/Mod only |
 | `!endraffle` | Close entries | Broadcaster/Mods |
 | `!draw` | Pick a winner | Broadcaster/Mods |
 | `!cancelraffle` | Cancel raffle | Broadcaster/Mods |

@@ -64,9 +64,9 @@ class RaffleComponent(commands.Component):
         raffle.is_active = True
         raffle.is_open = True
 
-        await ctx.send("Raffle started! VIPs, Subscribers, and Moderators can type !join to enter.")
+        await ctx.send("Raffle started! VIPs, Subscribers, and Moderators can type !enter to enter.")
 
-    @commands.command(name="join")
+    @commands.command(name="enter")
     async def join_raffle(self, ctx: commands.Context) -> None:
         raffle = self.get_raffle(ctx.broadcaster.id)
 
@@ -170,4 +170,4 @@ class RaffleComponent(commands.Component):
 
     @commands.command(name="rafflehelp")
     async def raffle_help(self, ctx: commands.Context) -> None:
-        await ctx.send("Commands: !join, !participants | Mods: !startraffle, !endraffle, !draw, !cancelraffle")
+        await ctx.send("Commands: !enter, !participants | Mods: !startraffle, !endraffle, !draw, !cancelraffle")
