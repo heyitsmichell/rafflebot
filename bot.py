@@ -36,30 +36,13 @@ class HealthCheckAdapter(AiohttpAdapter):
             web.get("/", health_check),
             web.get("/health", health_check),
         ])
-        self._force_redirect = f"{RENDER_URL}/oauth/callback" if RENDER_URL else None
-    
-    @property
-    def scheme(self) -> str:
-        return "https"
-    
-    @property
-    def callback(self) -> str:
-        return self._force_redirect or super().callback
-    
-    @property
-    def redirect_uri(self) -> str:
-        return self._force_redirect or super().redirect_uri
-    
-    @property  
-    def oauth_callback(self) -> str:
-        return self._force_redirect or getattr(super(), 'oauth_callback', self.callback)
 
 
 class RaffleBot(commands.AutoBot):
     def __init__(self, *, supabase_client: Client, subs: list[eventsub.SubscriptionPayload]) -> None:
         self.supabase = supabase_client
         
-        adapter = HealthCheckAdapter(host="0.0.0.0", port=PORT)
+        adapter = HealthCheckAdapter(host="0.0.0.0", port=PORT, domain=RENDER_URL if RENDER_URL else None)
         
         super().__init__(
             client_id=CLIENT_ID,
@@ -70,7 +53,6 @@ class RaffleBot(commands.AutoBot):
             subscriptions=subs,
             force_subscribe=True,
             adapter=adapter,
-            redirect_uri="https://rafflebot-73es.onrender.com/oauth/callback",
         )
 
     async def setup_hook(self) -> None:
