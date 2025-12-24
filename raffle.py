@@ -130,7 +130,7 @@ class RaffleComponent(commands.Component):
         winner = raffle.draw_winner()
 
         if winner:
-            await ctx.send(f"The winner is @{winner}! Congratulations!")
+            await ctx.send(f"The winner is @{winner} !! Congratulations!")
         else:
             await ctx.send("No one entered the raffle.")
         
