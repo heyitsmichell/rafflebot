@@ -31,7 +31,7 @@ class HealthCheckAdapter(AiohttpAdapter):
         self.app.router.add_get("/health", self.health_check)
     
     async def health_check(self, request: web.Request) -> web.Response:
-        return web.Response(text="OK", status=200)
+        return web.Response(text="RaffleBot Running!", status=200)
 
 
 class RaffleBot(commands.AutoBot):
