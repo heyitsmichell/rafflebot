@@ -52,6 +52,7 @@ class RaffleBot(commands.AutoBot):
             subscriptions=subs,
             force_subscribe=True,
             adapter=adapter,
+            redirect_uri="https://rafflebot-73es.onrender.com/oauth/callback",
         )
 
     async def setup_hook(self) -> None:
