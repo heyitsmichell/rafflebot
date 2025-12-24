@@ -22,6 +22,7 @@ CHANNEL = os.getenv("TWITCH_CHANNEL", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 PORT = int(os.getenv("PORT", "10000"))
+RENDER_URL = os.getenv("RENDER_URL", "")
 
 
 async def health_check(request: web.Request) -> web.Response:
@@ -39,6 +40,10 @@ class HealthCheckAdapter(AiohttpAdapter):
     @property
     def scheme(self) -> str:
         return "https"
+    
+    @property
+    def callback(self) -> str:
+        return f"{RENDER_URL}/oauth/callback" if RENDER_URL else super().callback
 
 
 class RaffleBot(commands.AutoBot):
